@@ -293,8 +293,6 @@ class WinkelwagenWindow(QMainWindow):
 
         self.lineedit_tafelnummer = QLineEdit()
         self.lineedit_tafelnummer.setPlaceholderText("Voer tafelnummer in...")
-        tafelnummer = self.lineedit_tafelnummer.text()
-
 
         layout.addWidget(label)
         layout.addWidget(self.lineedit_tafelnummer)
@@ -321,6 +319,16 @@ class WinkelwagenWindow(QMainWindow):
         return footer_bar
 
     def go_to_payment(self):
+        tafelnummer = self.lineedit_tafelnummer.text().strip()
+
+        if not tafelnummer:
+            QMessageBox.warning(
+                self,
+                "Oops",
+                "Vul alstublieft uw tafelnummer in."
+            )
+            return
+
         self.payment_window = BetaalMethode(parent=self)
         self.payment_window.show()
         self.hide()
