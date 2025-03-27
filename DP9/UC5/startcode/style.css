@@ -1,0 +1,36 @@
+QWidget {
+    background-color: #F9F9F9;
+    font-family: Arial, sans-serif;
+}
+
+QLabel {
+    font-size: 14px;
+    color: #333;
+}
+
+QPushButton {
+    background: #00bfff;
+    color: white;
+    font-size: 14px;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+}
+
+QPushButton:hover {
+    background: #009acd;
+}
+
+QSpinBox {
+    background: white;
+    padding: 5px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+QFrame {
+    border: none;
+    background-color: #ccc;
+    height: 1px;
+}

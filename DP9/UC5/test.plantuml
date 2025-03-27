@@ -1,0 +1,22 @@
+@startuml test
+class Winkelmand {
+    + __init__()
+    + voegToe(product_id, naam, prijs)
+    + verwijder(product_id)
+    + wijzigHoeveelheid(product_id, hoeveelheid)
+    + berekenTotaal()
+    + setTafelnummer(nummer)
+}
+
+class WinkelmandScherm {
+    + __init__(winkelmand)
+    + updateWinkelmand()
+    + onHoeveelheidChanged(product_id, nieuwe_hoeveelheid)
+    + onVerwijderClicked(product_id)
+    + onHelpClicked()
+    + onAfrekenenClicked()
+    + onTafelnummerChanged(value)
+}
+
+WinkelmandScherm --> Winkelmand : gebruikt
+@enduml
