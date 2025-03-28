@@ -186,13 +186,13 @@ while True:
         if richting == "rechtdoor":
             set_motor_speed(0.2, 0.2)
         elif richting == "kort links": 
-            set_motor_speed(0.2, 0.125)
+            set_motor_speed(0.2, 0.15)
         elif richting == "kort rechts":
-            set_motor_speed(0.125, 0.2)
+            set_motor_speed(0.15, 0.2)
         elif richting == "scherp links":
             set_motor_speed(0.2, 0.025)
         elif richting == "scherpe rechts": 
-            set_motor_speed(0.025, 0.2)
+            set_motor_speed(0.05, 0.2)
         elif richting == "robot kwijt":
             set_motor_speed(0.0, 0.0)
         else:
