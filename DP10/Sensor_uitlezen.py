@@ -76,28 +76,48 @@ def sensorrichting():
     sensor_value_tuple = tuple(sensor_values[f'sensor_{i}'] for i in range(1, 6))
 
     rechtdoor_combo = [
-        (1, 1, 0, 1, 1),
-        (1, 1, 0, 1, 0),
+        (0, 0, 0, 0, 0),
+        (0, 0, 0, 0, 1),
+        (0, 0, 0, 1, 1),
+        (0, 0, 1, 0, 0),
         (0, 1, 0, 1, 1),
+        (1, 0, 0, 0, 0),
+        (1, 0, 0, 0, 1),
+        (1, 0, 0, 1, 0),
+        (1, 0, 1, 0, 1),
+        (1, 1, 0, 1, 1),
+
+        (0, 1, 0, 1, 0),
         (0, 1, 0, 1, 0)
     ]
     kort_links_combo = [
-        (1, 0, 1, 1, 1),
-        (0, 0, 1, 1, 1),
-        (1, 0, 0, 1, 1)
+        (0, 0, 1, 1, 0),    #misschien aanpassen
+        (1, 1, 1, 0, 1),
+        (1, 0, 0, 1, 1),
+        (1, 1, 0, 1, 0),
+        (1, 0, 1, 1, 0),
+        (1, 0, 1, 0, 0),
+        (0, 0, 1, 0, 1),
+        (0, 1, 1, 0, 0),
+        (1, 1, 1, 0, 1),
     ]
     scherpe_links = [
-        (0, 1, 1, 1, 1)
+        (0, 1, 1, 1, 1),
+        (0, 0, 1, 1, 1),
     ]
     korte_rechts_combo = [
-        (1, 1, 1, 0, 1),
+        (0, 1, 1, 0, 1),
+        (1, 1, 0, 0, 1),
+        (1, 0, 1, 1, 1),
+        (0, 1, 0, 0, 1),
+        (0, 1, 0, 0, 0),
         (0, 0, 0, 1, 0),
         (1, 1, 1, 0, 0),
-        (1, 1, 0, 0, 1),
         (1, 1, 0, 0, 0)
     ]
     scherpe_rechts = [
         (1, 1, 1, 1, 0),
+        (1, 1, 1, 0, 0),
     ]
     stop= [
         (1, 1, 1, 1, 1),
@@ -117,22 +137,24 @@ def sensorrichting():
         return "robot kwijt"
     else:
         return "stop"
-opgeslagen_patronen = []  # buiten de loop
-vorige_patroon = [0, 0, 0, 0, 0]  # buiten de loop
+# Plaats deze variabelen buiten de loop zodat ze behouden blijven
+opgeslagen_patronen = []  # lijst voor unieke sensorpatronen
+vorige_patroon = [0, 0, 0, 0, 0]  # beginwaarde voor vorige patroon
 
 while True:
+    # Lees de huidige sensorwaarden
     sensor_waarden = [
         sensor_values.get(f'sensor_{i}', 0)
         for i in range(1, 6)
     ]
-
+    
     time.sleep(0.01)
-
-    # sla nieuw patroon op als het nog niet in de lijst staat
+    
+    # Sla nieuw patroon op als het nog niet in de lijst staat
     if sensor_waarden not in opgeslagen_patronen:
         opgeslagen_patronen.append(sensor_waarden.copy())
         print(f"Nieuw patroon opgeslagen: {sensor_waarden}")
-
+    
     # DEBUG info
     print("Sensor status:", sensor_waarden)
     print(f"Links:        {sensor_values['sensor_1']}")
@@ -141,33 +163,31 @@ while True:
     print(f"Rechtsmidden: {sensor_values['sensor_4']}")
     print(f"Rechts:       {sensor_values['sensor_5']}")
     print("------")
-
+    
     # ACTIE op basis van huidig en vorig patroon
     if sensor_waarden == [1, 1, 1, 1, 1] and vorige_patroon in [
         [1, 1, 0, 0, 0],
         [0, 0, 1, 1, 1],
         [1, 0, 1, 0, 1]
     ]:
-        print(f"⚠️ Speciale actie voor vorige patroon {vorige_patroon}")
-        set_motor_speed(0.3, 0.2)
-
+        print(f"Speciale actie voor vorige patroon {vorige_patroon}")
+        set_motor_speed(0.1, 0.02)
     else:
         richting = sensorrichting()
-
         if richting == "rechtdoor":
             set_motor_speed(0.2, 0.2)
         elif richting == "kort links": 
-            set_motor_speed(0.2, 0.1)
+            set_motor_speed(0.2, 0.125)
         elif richting == "kort rechts":
-            set_motor_speed(0.1, 0.2)
+            set_motor_speed(0.125, 0.2)
         elif richting == "scherp links":
-            set_motor_speed(0.2, 0.075)
+            set_motor_speed(0.2, 0.025)
         elif richting == "scherpe rechts": 
-            set_motor_speed(0.075, 0.2)
+            set_motor_speed(0.025, 0.2)
         elif richting == "robot kwijt":
             set_motor_speed(0.0, 0.0)
         else:
             set_motor_speed(0.0, 0.0)
-
-    # update vorige patroon
+    
+    # Update vorige patroon voor de volgende iteratie
     vorige_patroon = sensor_waarden.copy()
