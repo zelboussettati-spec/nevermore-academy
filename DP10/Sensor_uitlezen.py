@@ -78,7 +78,6 @@ def sensorrichting():
     rechtdoor_combo = [
         (0, 0, 0, 0, 0),
         (0, 0, 0, 0, 1),
-        (0, 0, 0, 1, 1),
         (0, 0, 1, 0, 0),
         (0, 1, 0, 1, 1),
         (1, 0, 0, 0, 0),
@@ -93,6 +92,7 @@ def sensorrichting():
     kort_links_combo = [
         (0, 0, 1, 1, 0),    #misschien aanpassen
         (1, 1, 1, 0, 1),
+        (0, 0, 0, 1, 1),
         (1, 0, 0, 1, 1),
         (1, 1, 0, 1, 0),
         (1, 0, 1, 1, 0),
@@ -137,18 +137,31 @@ def sensorrichting():
         return "robot kwijt"
     else:
         return "stop"
-# Plaats deze variabelen buiten de loop zodat ze behouden blijven
-opgeslagen_patronen = []  # lijst voor unieke sensorpatronen
-vorige_patroon = [0, 0, 0, 0, 0]  # beginwaarde voor vorige patroon
+    
+
+opgeslagen_patronen = []             # lijst voor unieke sensorpatronen
+vorige_patroon = [1, 1, 1, 1, 1]       # beginwaarde (stel dat bij start geen lijn wordt gedetecteerd)
+laatste_geldige_patroon = [1, 1, 1, 1, 1]  # beginwaarde voor geldige sensorlezing
+
+# Definieer de lijst met vorige patronen die een speciale actie triggeren
+trigger_vorige_patronen = [
+    [0, 1, 0, 1, 0]
+]
 
 while True:
     # Lees de huidige sensorwaarden
     sensor_waarden = [
-        sensor_values.get(f'sensor_{i}', 0)
+        sensor_values.get(f'sensor_{i}', 1)  
         for i in range(1, 6)
     ]
     
     time.sleep(0.01)
+    
+
+    if sensor_waarden != [1, 1, 1, 1, 1]:
+        laatste_geldige_patroon = sensor_waarden.copy()
+    else:
+        sensor_waarden = laatste_geldige_patroon.copy()
     
     # Sla nieuw patroon op als het nog niet in de lijst staat
     if sensor_waarden not in opgeslagen_patronen:
@@ -164,16 +177,12 @@ while True:
     print(f"Rechts:       {sensor_values['sensor_5']}")
     print("------")
     
-    # ACTIE op basis van huidig en vorig patroon
-    if sensor_waarden == [1, 1, 1, 1, 1] and vorige_patroon in [
-        [1, 1, 0, 0, 0],
-        [0, 0, 1, 1, 1],
-        [1, 0, 1, 0, 1]
-    ]:
+    # ACTIE: Speciale actie als alle sensoren de lijn zien (0 = lijn)
+    if sensor_waarden == [0, 0, 0, 0, 0] and vorige_patroon in trigger_vorige_patronen:
         print(f"Speciale actie voor vorige patroon {vorige_patroon}")
         set_motor_speed(0.1, 0.02)
     else:
-        richting = sensorrichting()
+        richting = sensorrichting()  # Deze functie moet ook eventueel worden aangepast als de betekenis van 0 en 1 is omgekeerd.
         if richting == "rechtdoor":
             set_motor_speed(0.2, 0.2)
         elif richting == "kort links": 
@@ -191,3 +200,4 @@ while True:
     
     # Update vorige patroon voor de volgende iteratie
     vorige_patroon = sensor_waarden.copy()
+
