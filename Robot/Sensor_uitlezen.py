@@ -26,7 +26,7 @@ class Robot:
             )
             self.sensoren[i].enable_reporting()
 
-        self.routeplan = ["rechts", "links", "stop"]
+        self.routeplan = ["rechtdoor", "rechts", "rechts" "stop"]
         self.kruispunt_teller = 0
         self.laatste_kruispunt = 0
 
@@ -40,7 +40,7 @@ class Robot:
 
     def stap_vooruit(self):
         self.stel_motorsnelheid_in(0.2, 0.2)
-        time.sleep(0.1)
+        time.sleep(0.12)
         self.stop()
 
     def draai_scherp_links(self):
@@ -69,7 +69,9 @@ class Robot:
             patroon = [self.sensor_waarden[i] for i in range(1, 6)]
             if tuple(patroon) == (1, 1, 0, 1, 1):
                 break
-            if richting == "links":
+            if richting == "rechtdoor":
+                self.stap_vooruit()
+            elif richting == "links":
                 self.draai_scherp_links()
             elif richting == "rechts":
                 self.draai_scherp_rechts()
@@ -93,7 +95,7 @@ class Robot:
                 self.stap_vooruit()
             case (0, 1, 0, 0, 0) | (0, 1, 1, 0, 0) | (1, 1, 0, 0, 0):
                 self.stel_motorsnelheid_in(0.2, 0.15)
-            case (1, 0, 0, 0, 0) | (1, 1, 1, 0, 0) | (1, 1, 1, 0, 1) | (0, 1, 1, 1, 0):
+            case (1, 0, 0, 0, 0) | (1, 1, 1, 0, 0) | (1, 1, 1, 0, 1) | (0, 1, 1, 1, 0) |(1, 1, 1, 1, 0):
                 self.draai_scherp_rechts()
             case (0, 0, 0, 1, 1) | (0, 0, 0, 1, 0) | (0, 0, 1, 1, 0) | (0, 0, 0, 0, 1):
                 self.stel_motorsnelheid_in(0.15, 0.2)
