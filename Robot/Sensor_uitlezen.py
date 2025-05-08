@@ -26,7 +26,7 @@ class Robot:
             )
             self.sensoren[i].enable_reporting()
 
-        self.routeplan = ["rechtdoor", "rechts", "rechts" "stop"]
+        self.routeplan = ["rechts", "links" "stop"]
         self.kruispunt_teller = 0
         self.laatste_kruispunt = 0
 
