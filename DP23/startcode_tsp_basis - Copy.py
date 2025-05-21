@@ -32,9 +32,40 @@ class BruteForce:
 
         return best_route, min_distance
     
+class NearestNeighbor:
+    def __init__(self, distance, start, cities):
+        self.distance = distance
+        self.start = start
+        self.cities = cities
+
+    def bereken(self):
+        niet_bezocht = self.cities.copy()
+        route = [self.start]
+        huidige_stad = self.start
+        totale_afstand = 0
+
+        while niet_bezocht:
+            dichtstbijzijnde = min(niet_bezocht, key=lambda stad: self.distance[huidige_stad][stad])
+            totale_afstand += self.distance[huidige_stad][dichtstbijzijnde]
+            route.append(dichtstbijzijnde)
+            huidige_stad = dichtstbijzijnde
+            niet_bezocht.remove(dichtstbijzijnde)
+
+        totale_afstand += self.distance[huidige_stad][self.start]
+        route.append(self.start)
+
+        return route, totale_afstand
+    
+    
 if __name__ == "__main__":
     print("\n*** Brute Force Algoritme ***")
     bf_solver = BruteForce(distance, start, cities)
     route_bf, dist_bf = bf_solver.bereken()
     print("Route:", route_bf)
     print("Totale afstand:", dist_bf)
+
+    print("\n*** Nearest Neighboy Algoritme ***")
+    nn_solver = NearestNeighbor(distance, start, cities)
+    route_nn, dist_nn = nn_solver.bereken()
+    print("Route:", route_nn)
+    print("Totale afstand:", dist_nn)
