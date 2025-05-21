@@ -56,6 +56,29 @@ class NearestNeighbor:
 
         return route, totale_afstand
     
+class FurthestNeighbor:
+    def __init__(self, distance, start, cities):
+        self.distance = distance
+        self.start = start
+        self.cities = cities
+
+    def bereken(self):
+        niet_bezocht = self.cities.copy()
+        route = [self.start]
+        huidige_stad = self.start
+        totale_afstand = 0
+
+        while niet_bezocht:
+            verste = max(niet_bezocht, key=lambda stad: self.distance[huidige_stad][stad])
+            totale_afstand += self.distance[huidige_stad][verste]
+            route.append(verste)
+            huidige_stad = verste
+            niet_bezocht.remove(verste)
+
+        totale_afstand += self.distance[huidige_stad][self.start]
+        route.append(self.start)
+        return route, totale_afstand
+    
     
 if __name__ == "__main__":
     print("\n*** Brute Force Algoritme ***")
@@ -69,3 +92,9 @@ if __name__ == "__main__":
     route_nn, dist_nn = nn_solver.bereken()
     print("Route:", route_nn)
     print("Totale afstand:", dist_nn)
+
+    print("\n*** Furthest Neighbor ***")
+    tsp_fn = FurthestNeighbor(distance, start, cities)
+    route_fn, dist_fn = tsp_fn.bereken()
+    print("Route:", route_fn)
+    print("Totale afstand:", dist_fn)
