@@ -12,17 +12,17 @@ distance_3 = {
     'Tafel3': {'Keuken': 70,  'Tafel1': 35,  'Tafel2': 55,  'Tafel3': 0}
 }
 distance_4 = {
-    'Keuken': {'Keuken': 0,   'Tafel1': 60,  'Tafel2': 45,  'Tafel3': 70,  'Tafel4': 55},
-    'Tafel1': {'Keuken': 60,  'Tafel1': 0,   'Tafel2': 35,  'Tafel3': 40,  'Tafel4': 30},
-    'Tafel2': {'Keuken': 45,  'Tafel1': 35,  'Tafel2': 0,   'Tafel3': 50,  'Tafel4': 20},
-    'Tafel3': {'Keuken': 55,  'Tafel1': 30,  'Tafel2': 20,  'Tafel3': 25,  'Tafel4': 0}
+    'Keuken': {'Keuken': 0,   'Tafel1': 65,  'Tafel2': 50,  'Tafel3': 0},
+    'Tafel1': {'Keuken': 65,  'Tafel1': 0,   'Tafel2': 25,  'Tafel3': 70},
+    'Tafel2': {'Keuken': 70,  'Tafel1': 40,  'Tafel2': 30,  'Tafel3': 0},
+    'Tafel3': {'Keuken': 45,  'Tafel1': 50,  'Tafel2': 35,  'Tafel3': 0}
 }
 
 distance_6 = {
-    'Keuken': {'Keuken': 0,   'Tafel1': 65,  'Tafel2': 50,  'Tafel3': 70,  'Tafel4': 60,  'Tafel5': 55,  'Tafel6': 45},
-    'Tafel1': {'Keuken': 65,  'Tafel1': 0,   'Tafel2': 25,  'Tafel3': 40,  'Tafel4': 35,  'Tafel5': 45,  'Tafel6': 50},
-    'Tafel2': {'Keuken': 70,  'Tafel1': 40,  'Tafel2': 30,  'Tafel3': 0,   'Tafel4': 25,  'Tafel5': 30,  'Tafel6': 20},
-    'Tafel3': {'Keuken': 45,  'Tafel1': 50,  'Tafel2': 35,  'Tafel3': 20,  'Tafel4': 25,  'Tafel5': 10,  'Tafel6': 0}
+    'Keuken': {'Keuken': 0,   'Tafel1': 65,  'Tafel2': 50,  'Tafel3': 0},
+    'Tafel1': {'Keuken': 65,  'Tafel1': 0,   'Tafel2': 25,  'Tafel3': 0},
+    'Tafel2': {'Keuken': 70,  'Tafel1': 40,  'Tafel2': 30,  'Tafel3': 0},
+    'Tafel3': {'Keuken': 45,  'Tafel1': 50,  'Tafel2': 35,  'Tafel3': 0}
 }
 
 
@@ -42,7 +42,7 @@ for perm in list(itertools.permutations(cities)):
     # Bereken de totale afstand voor de route
     total_distance = 0
     for i in range(len(route) - 1):
-        total_distance += distance[route[i]][route[i+1]]
+        total_distance += distance_3[route[i]][route[i+1]]
 
     print(f"- afstand: {total_distance}")
 
