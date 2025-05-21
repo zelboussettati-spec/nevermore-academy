@@ -1,21 +1,17 @@
-# begin met:
-# pip install sqlalchemy
-# pip install pymsql
-# pip install cryptography   
-
 import pandas as pd
 from sqlalchemy import create_engine
 
-# Databaseconfiguratie
+# Database connectie
 host = "localhost"
-port = 3306  # Standaard MariaDB/MySQL-poort, kan ook 3307 zijn
+port = 3306
 database = "hr"
 user = "kpidashboard"
-password = "mand"
-view_name = "beschikbaarheid" # de view voor jouw kpi-story
+password = "VeiligWachtwoord123"
+view_name = "view_klanttevredenheid_jonge_klanten"
 
-# locatie json-bestand robot
-bestandspad = 'robot_restaurant_log.json'
+# locatie json-bestand robot en excel bestand
+robot_file = "robot_restaurant_log.json"
+excel_file = "besteldata.xlsx"
 
 # Maak een databaseverbinding met SQLAlchemy en pymysql
 engine = create_engine(f"mysql+pymysql://{user}:{password}@{host}:{port}/{database}")
