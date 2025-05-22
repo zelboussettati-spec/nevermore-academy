@@ -22,7 +22,7 @@ ERROR_BLOCKS = [
 ]
 
 def generate_birth_date(reference_date):
-    if random.random() < 0.43:
+    if random.random() < 0.9:
         age = random.randint(18, 44)
     else:
         age = random.randint(45, 90)
