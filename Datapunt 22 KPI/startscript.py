@@ -1,104 +1,147 @@
 import pandas as pd
-import streamlit as st
+from sqlalchemy import create_engine
 import matplotlib.pyplot as plt
-from datetime import datetime
 
-# Bestandsnamen
-robot_file = "robot_restaurant_log_week_cleaned.json"
-excel_file = "besteldata.xlsx"
+# Bestandspaden
+robot_file = "C:/Users/faysa/OneDrive - Windesheim Office365/HBO-ICT/ICT 1e jaars periode 2/Bestelrobot VS/m2-2/Datapunt 22 KPI/robot_restaurant_log_week_cleaned.json"
+medewerkers_file = "C:/Users/faysa/OneDrive - Windesheim Office365/HBO-ICT/ICT 1e jaars periode 2/Bestelrobot VS/m2-2/Datapunt 22 KPI/besteldata.xlsx"
 
-# Inlezen robotlog
-try:
-    df_robot = pd.read_json(robot_file)
-    st.success("Robotlog geladen")
-except Exception as e:
-    st.error(f"Fout bij inlezen robotlog: {e}")
-    df_robot = pd.DataFrame()
+# Databaseconnectie (MySQL)
+host = "localhost"
+port = 3306
+database = "hr"
+user = "kpidashboard"
+password = "VeiligWachtwoord123"
 
-# Inlezen Excel-besteldata
-try:
-    df_excel = pd.read_excel(excel_file)
-    st.success("Excelbestand geladen")
-except Exception as e:
-    st.error(f"Fout bij inlezen Excelbestand: {e}")
-    df_excel = pd.DataFrame()
+def maak_engine():
+    engine_str = f"mysql+pymysql://{user}:{password}@{host}:{port}/{database}"
+    return create_engine(engine_str)
 
-# KPI 1: Klanttevredenheid jonge klanten (≤ 45 jaar)
-def kpi1():
+def laad_view(view_name):
     try:
-        df_robot["Birth_Date"] = pd.to_datetime(df_robot["Birth_Date"], format="%d-%m-%Y", errors="coerce")
-        df_robot["Date"] = pd.to_datetime(df_robot["Date"], format="%d-%m-%Y", errors="coerce")
-        df_robot["Age"] = (df_robot["Date"] - df_robot["Birth_Date"]).dt.days // 365
-
-        df_excel["Birth_Date"] = pd.to_datetime(df_excel["Birth_Date"], dayfirst=True, errors="coerce")
-        df_excel["Date"] = pd.to_datetime(df_excel["Date"], dayfirst=True, errors="coerce")
-        df_excel["Age"] = (df_excel["Date"] - df_excel["Birth_Date"]).dt.days // 365
-
-        young_robot = df_robot[df_robot["Age"] <= 45]
-        young_excel = df_excel[df_excel["Age"] <= 45]
-
-        avg_robot = young_robot["Rating"].mean()
-        avg_excel = young_excel["Rating"].mean()
-
-        st.subheader("KPI 1 - Klanttevredenheid jonge klanten (≤ 45 jaar)")
-        st.metric("Gemiddelde beoordeling robot", f"{avg_robot:.2f}")
-        st.metric("Gemiddelde beoordeling bediening", f"{avg_excel:.2f}")
+        engine = maak_engine()
+        df_view = pd.read_sql(f"SELECT * FROM {view_name}", con=engine)
+        print(f"[INFO] View '{view_name}' succesvol geladen:")
+        print(df_view.head())
+        return df_view
     except Exception as e:
-        st.error(f"Fout in KPI 1: {e}")
+        print(f"[FOUT] Laden view '{view_name}': {e}")
+        return pd.DataFrame()
 
-# KPI 3: Orders per uur (robot)
-def kpi3():
+def laad_data():
     try:
-        df_robot["Time_Picked"] = pd.to_datetime(df_robot["Time_Picked"], format="%H:%M:%S", errors="coerce")
-        df_robot["Uur"] = df_robot["Time_Picked"].dt.hour
-        orders_per_uur = df_robot.groupby("Uur")["Order_ID"].count()
-
-        st.subheader("KPI 3 - Aantal robotorders per uur")
-        fig, ax = plt.subplots()
-        orders_per_uur.plot(kind="bar", ax=ax, color="steelblue")
-        ax.set_ylabel("Aantal orders")
-        st.pyplot(fig)
+        df_robot = pd.read_json(robot_file)
+        print("[INFO] Robotlog geladen:")
+        print(df_robot.head())
     except Exception as e:
-        st.error(f"Fout in KPI 3: {e}")
+        print(f"[FOUT] Robotlog laden mislukt: {e}")
+        df_robot = pd.DataFrame()
 
-# KPI 4: Bezorgsnelheid (bediening)
-def kpi4():
     try:
-        df_excel["Time_Order"] = pd.to_datetime(df_excel["Time_Ord"], format="%H:%M:%S", errors="coerce")
-        df_excel["Time_Delivery"] = pd.to_datetime(df_excel["Time_Deli"], format="%H:%M:%S", errors="coerce")
-        df_excel["Seconds"] = (df_excel["Time_Delivery"] - df_excel["Time_Order"]).dt.total_seconds()
-        avg_time = df_excel["Seconds"].mean()
-
-        st.subheader("KPI 4 - Gemiddelde bezorgtijd bediening (seconden)")
-        st.metric(label="Gemiddelde bezorgtijd", value=f"{avg_time:.1f}")
+        df_mens = pd.read_excel(medewerkers_file)
+        print("[INFO] Medewerkersbestand geladen:")
+        print(df_mens.head())
     except Exception as e:
-        st.error(f"Fout in KPI 4: {e}")
+        print(f"[FOUT] Medewerkersbestand laden mislukt: {e}")
+        df_mens = pd.DataFrame()
 
-# KPI 5: Totale kosten per dag (bediening)
-def kpi5():
-    try:
-        df_excel["Date"] = pd.to_datetime(df_excel["Date"], dayfirst=True, errors="coerce")
-        kosten_per_dag = df_excel.groupby(df_excel["Date"].dt.date)["Total_Am"].sum()
+    # Voorbereiding
+    for df in [df_robot, df_mens]:
+        df["Birth_Date"] = pd.to_datetime(df["Birth_Date"], dayfirst=True, errors="coerce")
+        df["Date"] = pd.to_datetime(df["Date"], dayfirst=True, errors="coerce")
+        df["Age"] = (df["Date"] - df["Birth_Date"]).dt.days // 365
+        df["Rating"] = pd.to_numeric(df["Rating"], errors="coerce")
+        df["Total_Amount"] = pd.to_numeric(df["Total_Amount"], errors="coerce")
 
-        st.subheader("KPI 5 - Totale kosten per dag (bediening)")
-        fig, ax = plt.subplots()
-        kosten_per_dag.plot(kind="bar", ax=ax, color="darkred")
-        ax.set_ylabel("Totale kosten (€)")
-        st.pyplot(fig)
-    except Exception as e:
-        st.error(f"Fout in KPI 5: {e}")
+    return df_robot, df_mens
 
-# Navigatie
-st.title("KPI Dashboard - Restaurant")
+# KPI 1: Klanttevredenheid bediening van jonge klanten (<=45):
+def bereken_kpi1(df_robot, df_mens):
+    young_robot = df_robot[df_robot["Age"] <= 45]
+    young_mens = df_mens[df_mens["Age"] <= 45]
+    
+    print("\nKPI 1: Klanttevredenheid bediening van jonge klanten (<=45)")
+    print("Aantal jonge klanten (robot):", df_robot[df_robot["Age"] <= 45].shape[0])
+    print("Gem. beoordeling (robot, ≤ 45):", df_robot[df_robot["Age"] <= 45]["Rating"].mean())
 
-tabs = st.tabs([
-    "KPI 1 - Tevredenheid",
-    "KPI 3 - Orders per uur",
-    "KPI 4 - Bezorgsnelheid",
-    "KPI 5 - Kosten per dag"
-])
+    print("\nAantal jonge klanten (mens):", df_mens[df_mens["Age"] <= 45].shape[0])
+    print("Gem. beoordeling (mens, ≤ 45):", df_mens[df_mens["Age"] <= 45]["Rating"].mean())
 
-with tabs[0]: kpi1()
-with tabs[1]: kpi3()
-with tabs[2]: kpi4()
-with tabs[3]: kpi5()
+    return young_robot["Rating"].mean(), young_mens["Rating"].mean()
+
+# KPI 3: Aantal opgepikte orders per uur: 
+def figuur_kpi3(df_robot, df_mens):
+    df_robot["Time_Picked"] = pd.to_datetime(df_robot["Time_Picked"], format="%H:%M:%S", errors="coerce")
+    df_robot["Uur"] = df_robot["Time_Picked"].dt.hour
+    robot_orders = df_robot.groupby("Uur")["Order_ID"].count()
+
+    df_mens["Time_Order"] = pd.to_datetime(df_mens["Time_Order"], format="%H:%M:%S", errors="coerce")
+    df_mens["Uur"] = df_mens["Time_Order"].dt.hour
+    mens_orders = df_mens.groupby("Uur")["Order_ID"].count()
+
+    df = pd.DataFrame({"Robot": robot_orders, "Mens": mens_orders}).fillna(0)
+
+    fig, ax = plt.subplots()
+    df.plot(kind="bar", ax=ax)
+    ax.set_ylabel("Aantal orders")
+    ax.set_xlabel("Uur van de dag")
+
+    # Tabel om data te vergelijken
+    tabel = pd.DataFrame({
+        "Robot": robot_orders,
+        "Mens": mens_orders
+    }).fillna(0)
+
+    print("\nKPI 3: Aantal opgepikte orders per uur")
+    print(tabel)
+
+
+    return fig
+
+# KPI 4: Bezorgsnelheid in seconden: 
+def bereken_kpi4(df_robot, df_mens):
+    if "Time_Order" not in df_robot.columns:
+        df_robot["Time_Order"] = pd.to_datetime(df_robot["Time_Picked"], format="%H:%M:%S", errors="coerce")
+    else:
+        df_robot["Time_Order"] = pd.to_datetime(df_robot["Time_Order"], format="%H:%M:%S", errors="coerce")
+
+    df_robot["Time_Delivery"] = pd.to_datetime(df_robot["Time_Delivery"], format="%H:%M:%S", errors="coerce")
+    df_robot["Seconds"] = (df_robot["Time_Delivery"] - df_robot["Time_Order"]).dt.total_seconds()
+
+    df_mens["Time_Order"] = pd.to_datetime(df_mens["Time_Order"], format="%H:%M:%S", errors="coerce")
+    df_mens["Time_Delivery"] = pd.to_datetime(df_mens["Time_Delivery"], format="%H:%M:%S", errors="coerce")
+    df_mens["Seconds"] = (df_mens["Time_Delivery"] - df_mens["Time_Order"]).dt.total_seconds()
+
+    print("\nKPI 4: Bezorgsnelheid in seconden")
+    print("Robot bezorgtijden (seconden):")
+    print(df_robot["Seconds"].describe())  # gemiddelde, min, max, std
+
+    print("Mens bezorgtijden (seconden):")
+    print(df_mens["Seconds"].describe())  # gemiddelde, min, max, std
+
+
+    return df_robot["Seconds"].mean(), df_mens["Seconds"].mean()
+
+# KPI 5: Kosten per dag: 
+def figuur_kpi5(df_robot, df_mens):
+    df_robot["Date"] = pd.to_datetime(df_robot["Date"], dayfirst=True, errors="coerce")
+    df_mens["Date"] = pd.to_datetime(df_mens["Date"], dayfirst=True, errors="coerce")
+
+    robot_kosten = df_robot.groupby(df_robot["Date"].dt.date)["Total_Amount"].sum()
+    mens_kosten = df_mens.groupby(df_mens["Date"].dt.date)["Total_Amount"].sum()
+
+    df = pd.DataFrame({"Robot": robot_kosten, "Mens": mens_kosten}).fillna(0)
+
+    fig, ax = plt.subplots()
+    df.plot(kind="bar", ax=ax)
+    ax.set_ylabel("Totale kosten (€)")
+    ax.set_xlabel("Datum")
+
+    print("\nKPI 5: Kosten per dag")
+
+    print("Kosten per dag - Robot:")
+    print(df_robot.groupby(df_robot["Date"].dt.date)["Total_Amount"].sum())
+
+    print("\nKosten per dag - Mens:")
+    print(df_mens.groupby(df_mens["Date"].dt.date)["Total_Amount"].sum())
+    return fig
