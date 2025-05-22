@@ -1,4 +1,5 @@
 import itertools
+import time
 
 start = 'Keuken'
 cities = ['Tafel1', 'Tafel2', 'Tafel3']
@@ -32,6 +33,7 @@ class BruteForce:
         self.cities = cities
 
     def bereken(self):
+        start_tijd = time.time()
         min_distance = float('inf')
         best_route = None
 
@@ -45,6 +47,9 @@ class BruteForce:
             if total_distance < min_distance:
                 min_distance = total_distance
                 best_route = route
+
+        eind_tijd = time.time()
+        print(f"BruteForce duurde {eind_tijd - start_tijd:.6f} seconde")
 
         return best_route, min_distance
     
