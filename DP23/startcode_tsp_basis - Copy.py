@@ -2,11 +2,27 @@ import itertools
 
 start = 'Keuken'
 cities = ['Tafel1', 'Tafel2', 'Tafel3']
+
 distance = {
     'Keuken': {'Keuken': 0,   'Tafel1': 80,  'Tafel2': 40,  'Tafel3': 70},
     'Tafel1': {'Keuken': 80,  'Tafel1': 0,   'Tafel2': 50,  'Tafel3': 35},
     'Tafel2': {'Keuken': 40,  'Tafel1': 50,  'Tafel2': 0,   'Tafel3': 55},
     'Tafel3': {'Keuken': 70,  'Tafel1': 35,  'Tafel2': 55,  'Tafel3': 0}
+}
+
+distance2 = {
+    'Keuken': {'Keuken': 0, 'Tafel1': 45, 'Tafel2': 70, 'Tafel3': 60},
+    'Tafel1': {'Keuken': 45, 'Tafel1': 0, 'Tafel2': 30, 'Tafel3': 50},
+    'Tafel2': {'Keuken': 70, 'Tafel1': 30, 'Tafel2': 0, 'Tafel3': 25},
+    'Tafel3': {'Keuken': 60, 'Tafel1': 50, 'Tafel2': 25, 'Tafel3': 0}
+}
+
+
+distance3 = {
+    'Keuken': {'Keuken': 0, 'Tafel1': 100, 'Tafel2': 10, 'Tafel3': 90},
+    'Tafel1': {'Keuken': 100, 'Tafel1': 0, 'Tafel2': 60, 'Tafel3': 20},
+    'Tafel2': {'Keuken': 10, 'Tafel1': 60, 'Tafel2': 0, 'Tafel3': 80},
+    'Tafel3': {'Keuken': 90, 'Tafel1': 20, 'Tafel2': 80, 'Tafel3': 0}
 }
 
 class BruteForce:
