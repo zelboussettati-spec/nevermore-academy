@@ -1,5 +1,6 @@
 import itertools
 import time
+import matplotlib.pyplot as plt
 
 start = 'Keuken'
 cities = ['Tafel1', 'Tafel2', 'Tafel3']
@@ -102,13 +103,13 @@ class FurthestNeighbor:
     
     
 if __name__ == "__main__":
-    print("\n*** Brute Force Algoritme ***")
+    print("\n*** Brute Force ***")
     bf_solver = BruteForce(distance, start, cities)
     route_bf, dist_bf = bf_solver.bereken()
     print("Route:", route_bf)
     print("Totale afstand:", dist_bf)
 
-    print("\n*** Nearest Neighboy Algoritme ***")
+    print("\n*** Nearest Neighbor ***")
     nn_solver = NearestNeighbor(distance, start, cities)
     route_nn, dist_nn = nn_solver.bereken()
     print("Route:", route_nn)
@@ -119,3 +120,14 @@ if __name__ == "__main__":
     route_fn, dist_fn = tsp_fn.bereken()
     print("Route:", route_fn)
     print("Totale afstand:", dist_fn)
+    
+    methodes = ['Brute Force', 'Nearest Neighbor', 'Furthest Neighbor']
+    afstanden = [dist_bf, dist_nn, dist_fn]
+
+    plt.figure(figsize=(8, 5))
+    plt.bar(methodes, afstanden)
+    plt.title("Vergelijking van totale afstanden per algoritme")
+    plt.ylabel("Totale afstand")
+    plt.xlabel("Algoritme")
+    plt.tight_layout()
+    plt.show()
