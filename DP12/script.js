@@ -4,6 +4,9 @@ let huntStarted = false;
 let orientationActive = false;
 let dragStart = null;
 let visibleTarget = null;
+let sensorOrigin = null;
+let sensorReadings = 0;
+let dragControlsReady = false;
 
 const view = {
   yaw: 0,
@@ -15,7 +18,7 @@ const runes = [
     symbol: "\u263e",
     name: "NOCTIS",
     text: "Waar de nacht geheimen bewaart.",
-    yaw: -80,
+    yaw: 82,
     pitch: -4,
     depth: 0.85,
     found: false
@@ -24,7 +27,7 @@ const runes = [
     symbol: "\u25c9",
     name: "VISIO",
     text: "Waar verborgen waarheden zichtbaar worden.",
-    yaw: 35,
+    yaw: 188,
     pitch: 8,
     depth: 0.72,
     found: false
@@ -33,7 +36,7 @@ const runes = [
     symbol: "\u2726",
     name: "UMBRA",
     text: "Waar schaduwen oude kennis beschermen.",
-    yaw: 120,
+    yaw: 286,
     pitch: -10,
     depth: 0.95,
     found: false
@@ -103,23 +106,34 @@ async function startCamera() {
 
   resetGame();
   huntStarted = true;
+  sensorOrigin = null;
+  sensorReadings = 0;
 
   try {
+    await enableOrientation();
+
     const stream = await navigator.mediaDevices.getUserMedia({
       video: { facingMode: "environment" },
       audio: false
     });
 
     video.srcObject = stream;
-    await enableOrientation();
     buildRuneLayer();
     window.Nevermore3D?.init();
     startRenderLoop();
     setScanText(
       orientationActive
-        ? "Draai langzaam rond. Een rune licht op als hij in het vizier staat."
-        : "Sleep over het camerabeeld om rond te kijken. Pak een rune als hij in het vizier staat."
+        ? "Richt met je telefoon. De runes zijn verborgen rondom je."
+        : "Beweeg rond met je telefoon. Als dat niet werkt, sleep dan als fallback."
     );
+
+    setTimeout(() => {
+      if (huntStarted && orientationActive && sensorReadings < 2) {
+        orientationActive = false;
+        addDragControls();
+        setScanText("Telefoonrichting reageert niet. Sleep als fallback om rond te kijken.");
+      }
+    }, 1800);
   } catch (error) {
     alert("Camera kon niet geopend worden. Geef toestemming of open de website via HTTPS.");
   }
@@ -151,8 +165,15 @@ async function enableOrientation() {
 }
 
 function handleOrientation(event) {
-  if (typeof event.alpha === "number") {
-    view.yaw = normalizeAngle(360 - event.alpha);
+  const rawYaw = getDeviceYaw(event);
+
+  if (rawYaw !== null) {
+    if (sensorOrigin === null) {
+      sensorOrigin = rawYaw;
+    }
+
+    sensorReadings++;
+    view.yaw = normalizeAngle(rawYaw - sensorOrigin);
   }
 
   if (typeof event.beta === "number") {
@@ -160,7 +181,24 @@ function handleOrientation(event) {
   }
 }
 
+function getDeviceYaw(event) {
+  if (typeof event.webkitCompassHeading === "number") {
+    return normalizeAngle(event.webkitCompassHeading);
+  }
+
+  if (typeof event.alpha === "number") {
+    return normalizeAngle(360 - event.alpha);
+  }
+
+  return null;
+}
+
 function addDragControls() {
+  if (dragControlsReady) {
+    return;
+  }
+
+  dragControlsReady = true;
   const area = document.querySelector(".camera-area");
 
   area.addEventListener("pointerdown", event => {
@@ -284,7 +322,7 @@ function renderRunes() {
   if (visibleTarget !== null) {
     setScanText("Rune in vizier. Tik op Pak rune in vizier.");
   } else if (huntStarted && runesFound < runes.length) {
-    setScanText(orientationActive ? "Draai langzaam verder. Luister naar de richting." : "Sleep links of rechts om verder rond te kijken.");
+    setScanText(orientationActive ? "Richt verder door de ruimte. De runes zweven buiten beeld." : "Sleep links of rechts om verder rond te kijken.");
   }
 
   window.Nevermore3D?.update({
@@ -341,11 +379,24 @@ function collectRune(index) {
   }, 1800);
 
   if (runesFound === runes.length) {
-    document.getElementById("artefact").classList.remove("hidden");
-    setScanText("Alle runes gevonden. Artefact ontgrendeld.");
+    revealSecretHall();
   } else {
     setScanText("Rune verzameld. Draai verder om de volgende te vinden.");
   }
+}
+
+function revealSecretHall() {
+  const artefact = document.getElementById("artefact");
+  const cameraArea = document.querySelector(".camera-area");
+
+  artefact.classList.remove("hidden");
+  artefact.classList.add("reward-active");
+  cameraArea.classList.add("hall-open");
+  setScanText("Secret Hall geopend. Je cadeau wacht onder het portaal.");
+
+  setTimeout(() => {
+    artefact.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, 550);
 }
 
 function resetGame() {
@@ -359,8 +410,10 @@ function resetGame() {
   document.getElementById("runeCount").textContent = "0";
   document.getElementById("progressFill").style.width = "0%";
   document.getElementById("artefact").classList.add("hidden");
+  document.getElementById("artefact").classList.remove("reward-active");
+  document.querySelector(".camera-area").classList.remove("hall-open");
   document.getElementById("foundCard").classList.add("hidden");
-  setScanText("Start de camera en draai rond om de eerste rune te vinden.");
+  setScanText("Start de hunt en richt je telefoon door de ruimte.");
   buildRuneLayer();
   window.Nevermore3D?.update({
     view,
@@ -396,16 +449,27 @@ function clamp(value, min, max) {
 if (new URLSearchParams(window.location.search).has("preview3d")) {
   window.addEventListener("load", () => {
     setTimeout(() => {
+      const params = new URLSearchParams(window.location.search);
       showPage("game");
       resetGame();
       huntStarted = true;
       orientationActive = false;
-      view.yaw = 35;
-      view.pitch = 8;
+      view.yaw = params.has("reward") ? 286 : 82;
+      view.pitch = params.has("reward") ? -10 : -4;
       buildRuneLayer();
       window.Nevermore3D?.init();
       startRenderLoop();
       setScanText("3D preview actief.");
+
+      if (params.has("reward")) {
+        runes.forEach(rune => {
+          rune.found = true;
+        });
+        runesFound = runes.length;
+        document.getElementById("runeCount").textContent = runesFound;
+        document.getElementById("progressFill").style.width = "100%";
+        revealSecretHall();
+      }
     }, 250);
   });
 }

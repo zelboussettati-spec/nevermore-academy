@@ -125,7 +125,7 @@
     <div class="game-intro">
       <h3>Toelatingsroute</h3>
       <p>
-        Richt je camera op je omgeving en draai langzaam rond. Runes zweven op vaste richtingen om je heen; breng er een in het vizier om hem te verzamelen.
+        De runes zweven al rondom je, maar ze blijven uit zicht tot je telefoon precies de juiste richting vindt.
       </p>
       <button class="btn full-btn" onclick="startCamera()">Start AR Hunt</button>
     </div>
@@ -154,13 +154,13 @@
         </div>
       </div>
 
-      <p class="scan-text" id="scanText">Start de camera en draai rond om de eerste rune te vinden.</p>
+      <p class="scan-text" id="scanText">Start de hunt en richt je telefoon door de ruimte.</p>
     </div>
 
     <div class="steps">
       <div><span>1</span> Geef camera toestemming</div>
-      <div><span>2</span> Draai je telefoon tot een rune in het vizier staat</div>
-      <div><span>3</span> Pak alle runes en onthul het artefact</div>
+      <div><span>2</span> Richt door de ruimte tot een rune in het vizier staat</div>
+      <div><span>3</span> Verzamel alle runes en open de Secret Hall</div>
     </div>
 
     <div class="progress-box">
@@ -172,14 +172,25 @@
 
     <button class="btn full-btn" id="collectButton" onclick="scanRune()">Pak rune in vizier</button>
 
-    <div class="artefact hidden" id="artefact">
+    <div class="artefact secret-hall-reward hidden" id="artefact">
       <div class="book">📖</div>
-      <h3>Cursed Book Revealed</h3>
+      <div class="portal-scene">
+        <div class="portal-ring"></div>
+        <div class="portal-core"></div>
+        <div class="portal-sigil sigil-one">N</div>
+        <div class="portal-sigil sigil-two">V</div>
+        <div class="portal-sigil sigil-three">*</div>
+      </div>
+      <p class="reward-kicker">Cadeau ontgrendeld</p>
+      <h3>Secret Hall Found</h3>
       <p>
-        Het verborgen boek onthult geheime kennis over Nevermore Academy.
-        Door AR voelt de ontdekking alsof deze in de echte wereld plaatsvindt.
+        De drie runes vallen samen en de stenen muur van Nevermore schuift open.
+        Achter het paarse licht verschijnt de Secret Hall: een verboden gang waar Wednesday's volgende mysterie begint.
       </p>
-      <button class="btn" onclick="resetGame()">Opnieuw spelen</button>
+      <p class="reward-note">
+        Je naam is nu bewaard tussen de outcasts die de verborgen deur hebben geopend.
+      </p>
+      <button class="btn" onclick="resetGame()">Speel opnieuw</button>
     </div>
   </section>
 
