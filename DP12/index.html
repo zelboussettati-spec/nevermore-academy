@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Rune Hand AR</title>
+    <link rel="stylesheet" href="./styles.css">
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <main class="ar-shell">
+      <video id="camera" class="camera" autoplay muted playsinline></video>
+      <canvas id="scene" class="scene"></canvas>
+      <canvas id="scan" class="scan" width="192" height="108"></canvas>
+
+      <section class="topbar" aria-label="AR bediening">
+        <div class="status">
+          <span id="signal" class="signal"></span>
+          <span id="statusText">Camera starten</span>
+        </div>
+        <label class="icon-button" title="GLB hand kiezen" aria-label="GLB hand kiezen">
+          <input id="modelPicker" type="file" accept=".glb,.gltf,model/gltf-binary,model/gltf+json">
+          <span>☝</span>
+        </label>
+      </section>
+
+      <section class="controls" aria-label="Acties">
+        <button id="cameraButton" class="primary">Start camera</button>
+        <button id="scanButton" type="button">Zoek runes</button>
+        <button id="placeButton" type="button">Plaats hand</button>
+      </section>
+    </main>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
