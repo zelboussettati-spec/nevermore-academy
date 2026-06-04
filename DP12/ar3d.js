@@ -8,6 +8,7 @@ const state = {
   camera: null,
   hand: null,
   handRoot: null,
+  handGlow: null,
   runeGroups: [],
   canvas: null,
   area: null,
@@ -72,9 +73,22 @@ function addLights() {
 
 function buildHandAnchor() {
   state.handRoot = new THREE.Group();
-  state.handRoot.position.set(1.28, -1.38, 1.55);
-  state.handRoot.rotation.set(-0.42, -0.55, 0.2);
-  state.handRoot.scale.setScalar(0.52);
+  state.handRoot.position.set(0.25, -1.0, 1.52);
+  state.handRoot.rotation.set(-0.34, -0.12, 0.06);
+  state.handRoot.scale.setScalar(0.68);
+
+  state.handGlow = new THREE.Sprite(
+    new THREE.SpriteMaterial({
+      map: makeGlowTexture(0xd6b4ff),
+      color: 0xd6b4ff,
+      transparent: true,
+      opacity: 0.18,
+      depthWrite: false
+    })
+  );
+  state.handGlow.position.set(0, 0.35, -0.25);
+  state.handGlow.scale.set(1.3, 1.3, 1);
+  state.handRoot.add(state.handGlow);
   state.scene.add(state.handRoot);
 }
 
@@ -268,15 +282,23 @@ function animateHand() {
   }
 
   const targetGroup = state.lastTarget !== null ? state.runeGroups[state.lastTarget] : null;
-  const targetX = targetGroup && targetGroup.visible ? targetGroup.position.x : Math.sin(state.sweep) * 0.55;
-  const targetY = targetGroup && targetGroup.visible ? targetGroup.position.y : Math.cos(state.sweep * 0.8) * 0.25;
+  const targetX = targetGroup && targetGroup.visible ? targetGroup.position.x : Math.sin(state.sweep) * 0.38;
+  const targetY = targetGroup && targetGroup.visible ? targetGroup.position.y : Math.cos(state.sweep * 0.8) * 0.2;
+  const locked = targetGroup && targetGroup.visible;
 
-  state.handRoot.rotation.y += ((-0.55 - targetX * 0.1) - state.handRoot.rotation.y) * 0.08;
-  state.handRoot.rotation.x += ((-0.42 + targetY * 0.08) - state.handRoot.rotation.x) * 0.08;
-  state.handRoot.position.y = -1.38 + Math.sin(state.sweep * 1.6) * 0.035;
+  state.handRoot.rotation.y += ((-0.12 - targetX * 0.09) - state.handRoot.rotation.y) * 0.08;
+  state.handRoot.rotation.x += ((-0.34 + targetY * 0.08) - state.handRoot.rotation.x) * 0.08;
+  state.handRoot.position.x = 0.25 + targetX * 0.035;
+  state.handRoot.position.y = -1.0 + Math.sin(state.sweep * 1.6) * 0.035;
 
   if (state.hand) {
     state.hand.rotation.z = -0.22 + Math.sin(state.sweep * 1.4) * 0.055;
+  }
+
+  if (state.handGlow) {
+    state.handGlow.material.opacity += ((locked ? 0.58 : 0.18) - state.handGlow.material.opacity) * 0.12;
+    const glowScale = locked ? 1.65 : 1.15;
+    state.handGlow.scale.setScalar(glowScale + Math.sin(state.sweep * 3) * 0.05);
   }
 }
 

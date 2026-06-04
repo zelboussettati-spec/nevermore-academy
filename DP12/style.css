@@ -804,20 +804,19 @@ footer {
 .reticle {
   position: absolute;
   left: 50%;
-  top: 50%;
-  width: 78px;
-  height: 78px;
+  top: 61%;
+  width: 96px;
+  height: 96px;
   transform: translate(-50%, -50%);
-  border: 2px solid rgba(214, 180, 255, 0.75);
+  border: 1px solid rgba(214, 180, 255, 0.18);
   border-radius: 50%;
-  box-shadow: 0 0 24px rgba(157, 32, 255, 0.55);
+  box-shadow: 0 0 22px rgba(157, 32, 255, 0.22);
+  opacity: 0.35;
 }
 
 .reticle::before,
 .reticle::after {
-  content: "";
-  position: absolute;
-  background: rgba(214, 180, 255, 0.85);
+  display: none;
 }
 
 .reticle::before {
@@ -837,8 +836,29 @@ footer {
 }
 
 .reticle.locked {
-  border-color: #f8f1ff;
+  border-color: rgba(248, 241, 255, 0.82);
+  opacity: 0.82;
   box-shadow: 0 0 34px #d6b4ff, inset 0 0 22px rgba(157, 32, 255, 0.38);
+}
+
+.hand-reticle::after {
+  content: "HAND";
+  display: block;
+  position: absolute;
+  left: 50%;
+  top: auto;
+  right: auto;
+  bottom: -20px;
+  transform: translateX(-50%);
+  width: auto;
+  height: auto;
+  background: rgba(9, 9, 18, 0.76);
+  border: 1px solid rgba(214, 180, 255, 0.42);
+  border-radius: 999px;
+  color: #f6edff;
+  font-size: 10px;
+  line-height: 1;
+  padding: 4px 8px;
 }
 
 .reticle.miss {

@@ -123,15 +123,15 @@ async function startCamera() {
     startRenderLoop();
     setScanText(
       orientationActive
-        ? "Richt met je telefoon. De runes zijn verborgen rondom je."
-        : "Beweeg rond met je telefoon. Als dat niet werkt, sleep dan als fallback."
+        ? "Richt met de 3D-hand. Als de hand een rune vindt, licht hij op."
+        : "Beweeg rond met je telefoon. Als dat niet werkt, sleep dan als fallback met de hand."
     );
 
     setTimeout(() => {
       if (huntStarted && orientationActive && sensorReadings < 2) {
         orientationActive = false;
         addDragControls();
-        setScanText("Telefoonrichting reageert niet. Sleep als fallback om rond te kijken.");
+    setScanText("Telefoonrichting reageert niet. Sleep als fallback om met de hand te zoeken.");
       }
     }, 1800);
   } catch (error) {
@@ -320,9 +320,9 @@ function renderRunes() {
   reticle.classList.toggle("locked", visibleTarget !== null);
 
   if (visibleTarget !== null) {
-    setScanText("Rune in vizier. Tik op Pak rune in vizier.");
+    setScanText("De hand heeft een rune gevonden. Tik om hem te pakken.");
   } else if (huntStarted && runesFound < runes.length) {
-    setScanText(orientationActive ? "Richt verder door de ruimte. De runes zweven buiten beeld." : "Sleep links of rechts om verder rond te kijken.");
+    setScanText(orientationActive ? "Richt met de hand door de ruimte. De runes zweven buiten beeld." : "Sleep links of rechts om de hand verder te richten.");
   }
 
   window.Nevermore3D?.update({
@@ -341,7 +341,7 @@ function scanRune() {
 
   if (visibleTarget === null) {
     pulseReticle();
-    setScanText("Nog niet dichtbij genoeg. Zet een rune precies in het vizier.");
+    setScanText("Nog niet dichtbij genoeg. Richt de hand precies op de rune.");
     return;
   }
 
@@ -359,7 +359,7 @@ function collectRune(index) {
 
   if (aimDistance > 14) {
     pulseReticle();
-    setScanText("Deze rune is zichtbaar, maar nog niet goed genoeg gericht.");
+    setScanText("De hand is dichtbij, maar nog niet precies genoeg gericht.");
     return;
   }
 
