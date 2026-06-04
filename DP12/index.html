@@ -1,43 +1,179 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="nl">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>Rune Hand AR</title>
-    <link rel="stylesheet" href="./styles.css">
-    <script type="importmap">
-      {
-        "imports": {
-          "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
-          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
-        }
-      }
-    </script>
-  </head>
-  <body>
-    <main class="ar-shell">
-      <video id="camera" class="camera" autoplay muted playsinline></video>
-      <canvas id="scene" class="scene"></canvas>
-      <canvas id="scan" class="scan" width="192" height="108"></canvas>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nevermore Academy</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
 
-      <section class="topbar" aria-label="AR bediening">
-        <div class="status">
-          <span id="signal" class="signal"></span>
-          <span id="statusText">Camera starten</span>
+<header class="navbar">
+  <div class="brand" onclick="showPage('home')">
+    <div class="logo-dot"></div>
+    <h1>Nevermore</h1>
+  </div>
+
+  <button class="menu-btn" onclick="toggleMenu()">☰</button>
+
+  <nav class="mobile-menu" id="mobileMenu">
+    <button onclick="showPage('home')">Home</button>
+    <button onclick="showPage('map')">Academy Map</button>
+    <button onclick="showPage('profile')">Student Profile</button>
+    <button onclick="showPage('game')">AR Rune Hunt</button>
+  </nav>
+</header>
+
+<main>
+
+  <section class="page active" id="home">
+    <div class="hero">
+      <div class="hero-icon">📖</div>
+      <h2>NEVERMORE</h2>
+      <p>Where shadows dance with secrets and the extraordinary becomes ordinary.</p>
+      <button class="btn" onclick="showPage('map')">Enter Nevermore</button>
+    </div>
+
+    <div class="cards">
+      <button class="card" onclick="showPage('map')">
+        <h3>Academy Map</h3>
+        <p>Explore locations and hidden hotspots.</p>
+      </button>
+
+      <button class="card" onclick="showPage('profile')">
+        <h3>Student Profile</h3>
+        <p>Meet Wednesday Addams.</p>
+      </button>
+
+      <button class="card" onclick="showPage('game')">
+        <h3>AR Rune Hunt</h3>
+        <p>Use your camera to find hidden Nevermore runes.</p>
+      </button>
+    </div>
+  </section>
+
+  <section class="page" id="map">
+    <div class="page-title">
+      <button class="back-btn" onclick="showPage('home')">←</button>
+      <h2>Academy Grounds</h2>
+    </div>
+
+    <div class="academy-map">
+      <div class="map-grid"></div>
+      <div class="map-room room-one"></div>
+      <div class="map-room room-two"></div>
+      <div class="map-room room-three"></div>
+      <div class="map-room room-four"></div>
+
+      <button class="map-point point-quad" onclick="showInfo('The Quad')">👁</button>
+      <button class="map-point point-library" onclick="showInfo('Library')">📖</button>
+      <button class="map-point point-dorms" onclick="showInfo('Dorms')">☾</button>
+      <button class="map-point point-secret" onclick="showInfo('Secret Hall')">✦</button>
+    </div>
+
+    <div class="map-info" id="infoBox">
+      <div class="info-icon">👁</div>
+      <h3>The Quad</h3>
+      <p>Central gathering space surrounded by gothic architecture.</p>
+      <button class="btn" onclick="showPage('profile')">Explore Location</button>
+    </div>
+  </section>
+
+  <section class="page" id="profile">
+    <div class="page-title">
+      <button class="back-btn" onclick="showPage('map')">←</button>
+      <h2>Student Profile</h2>
+    </div>
+
+    <div class="profile-card">
+      <div class="profile-image"></div>
+      <h3>Wednesday Addams</h3>
+      <p class="pill">Psychic Outcast</p>
+
+      <div class="info-card">
+        <h4>About</h4>
+        <p>
+          Wednesday investigates hidden rooms, strange symbols and unexplained events around Nevermore Academy.
+        </p>
+      </div>
+
+      <div class="info-card">
+        <h4>Abilities</h4>
+        <div class="ability"><span>👁</span><p><b>Psychic Visions</b><br>Receives glimpses of past and future events.</p></div>
+        <div class="ability"><span>✦</span><p><b>Enhanced Intuition</b><br>Recognises danger and hidden clues.</p></div>
+        <div class="ability"><span>☾</span><p><b>Investigation Skills</b><br>Solves mysteries and uncovers hidden truths.</p></div>
+      </div>
+
+      <button class="btn full-btn" onclick="showPage('game')">Start AR Rune Hunt</button>
+    </div>
+  </section>
+
+  <section class="page" id="game">
+    <div class="page-title">
+      <button class="back-btn" onclick="showPage('profile')">←</button>
+      <h2>AR Rune Hunt</h2>
+    </div>
+
+    <div class="game-intro">
+      <h3>Toelatingsroute</h3>
+      <p>
+        Richt je camera op je omgeving. Scan verborgen Nevermore runes en ontdek welk artefact wordt ontgrendeld.
+      </p>
+      <button class="btn full-btn" onclick="startCamera()">Geef camera toestemming</button>
+    </div>
+
+    <div class="camera-area">
+      <video id="camera" autoplay playsinline></video>
+
+      <div class="scan-frame">
+        <div class="corner tl"></div>
+        <div class="corner tr"></div>
+        <div class="corner bl"></div>
+        <div class="corner br"></div>
+        <div class="scan-line"></div>
+
+        <div class="found-card hidden" id="foundCard">
+          <div class="rune-symbol" id="currentRune">✦</div>
+          <h3 id="runeName">UMBRA</h3>
+          <p id="runeText">Waar schaduwen geheimen bewaren.</p>
         </div>
-        <label class="icon-button" title="GLB hand kiezen" aria-label="GLB hand kiezen">
-          <input id="modelPicker" type="file" accept=".glb,.gltf,model/gltf-binary,model/gltf+json">
-          <span>☝</span>
-        </label>
-      </section>
+      </div>
 
-      <section class="controls" aria-label="Acties">
-        <button id="cameraButton" class="primary">Start camera</button>
-        <button id="scanButton" type="button">Zoek runes</button>
-        <button id="placeButton" type="button">Plaats hand</button>
-      </section>
-    </main>
+      <p class="scan-text" id="scanText">Zoek langzaam tot een rune oplicht...</p>
+    </div>
 
-    <script type="module" src="./app.js"></script>
-  </body>
+    <div class="steps">
+      <div><span>1</span> Geef camera toestemming</div>
+      <div><span>2</span> Zoek langzaam naar verborgen runes</div>
+      <div><span>3</span> Verzamel alle runes en onthul het artefact</div>
+    </div>
+
+    <div class="progress-box">
+      <p>Runes gevonden: <span id="runeCount">0</span> / 3</p>
+      <div class="progress-bar">
+        <div id="progressFill"></div>
+      </div>
+    </div>
+
+    <button class="btn full-btn" onclick="scanRune()">Scan Rune</button>
+
+    <div class="artefact hidden" id="artefact">
+      <div class="book">📖</div>
+      <h3>Cursed Book Revealed</h3>
+      <p>
+        Het verborgen boek onthult geheime kennis over Nevermore Academy.
+        Door AR voelt de ontdekking alsof deze in de echte wereld plaatsvindt.
+      </p>
+      <button class="btn" onclick="resetGame()">Opnieuw spelen</button>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <p>Nevermore Academy © 2026</p>
+</footer>
+
+<script src="script.js"></script>
+</body>
 </html>
