@@ -555,3 +555,185 @@ footer {
     background-position: 120px 180px, -150px -120px;
   }
 }
+
+/* Direction-based AR hunt */
+#camera {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.camera-area::after {
+  z-index: 2;
+}
+
+.ar-hud {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  perspective: 780px;
+}
+
+.compass {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 112px;
+  border: 1px solid rgba(214, 180, 255, 0.65);
+  border-radius: 999px;
+  background: rgba(9, 9, 18, 0.72);
+  color: #f6edff;
+  font-size: 13px;
+  text-align: center;
+  padding: 7px 12px;
+  box-shadow: 0 0 18px rgba(157, 32, 255, 0.45);
+}
+
+.reticle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 78px;
+  height: 78px;
+  transform: translate(-50%, -50%);
+  border: 2px solid rgba(214, 180, 255, 0.75);
+  border-radius: 50%;
+  box-shadow: 0 0 24px rgba(157, 32, 255, 0.55);
+}
+
+.reticle::before,
+.reticle::after {
+  content: "";
+  position: absolute;
+  background: rgba(214, 180, 255, 0.85);
+}
+
+.reticle::before {
+  left: 50%;
+  top: -14px;
+  bottom: -14px;
+  width: 2px;
+  transform: translateX(-50%);
+}
+
+.reticle::after {
+  top: 50%;
+  left: -14px;
+  right: -14px;
+  height: 2px;
+  transform: translateY(-50%);
+}
+
+.reticle.locked {
+  border-color: #f8f1ff;
+  box-shadow: 0 0 34px #d6b4ff, inset 0 0 22px rgba(157, 32, 255, 0.38);
+}
+
+.reticle.miss {
+  animation: reticleMiss 0.35s ease;
+}
+
+.rune-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.world-rune {
+  position: absolute;
+  width: 116px;
+  height: 116px;
+  border: 1px solid rgba(214, 180, 255, 0.78);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(246, 237, 255, 0.9), rgba(157, 32, 255, 0.48) 38%, rgba(9, 9, 18, 0.2) 70%),
+    rgba(11, 11, 15, 0.82);
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 0 34px rgba(157, 32, 255, 0.78);
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  pointer-events: auto;
+  transition: opacity 0.16s ease, filter 0.16s ease, box-shadow 0.16s ease;
+  transform-style: preserve-3d;
+}
+
+.world-rune::before {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border: 1px solid rgba(246, 237, 255, 0.55);
+  border-radius: 50%;
+}
+
+.world-rune-symbol {
+  display: block;
+  font-size: 42px;
+  line-height: 1;
+  text-shadow: 0 0 18px #3a0ca3;
+}
+
+.world-rune-name {
+  position: absolute;
+  bottom: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 86px;
+  border-radius: 999px;
+  background: rgba(9, 9, 18, 0.86);
+  border: 1px solid rgba(214, 180, 255, 0.45);
+  color: #f4eaff;
+  font-size: 11px;
+  letter-spacing: 0;
+  padding: 4px 8px;
+}
+
+.world-rune.locked {
+  filter: brightness(1.22);
+  box-shadow: 0 0 48px #f4eaff, 0 0 80px rgba(157, 32, 255, 0.84);
+  animation: runeLock 0.9s ease-in-out infinite alternate;
+}
+
+.scan-frame {
+  pointer-events: none;
+  z-index: 6;
+}
+
+.scan-line {
+  display: none;
+}
+
+.found-card {
+  z-index: 9;
+  pointer-events: none;
+}
+
+.scan-text {
+  left: 16px;
+  right: 16px;
+  width: auto;
+  padding: 9px 12px;
+  border-radius: 999px;
+  background: rgba(9, 9, 18, 0.72);
+}
+
+@keyframes runeLock {
+  from {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1.12);
+  }
+}
+
+@keyframes reticleMiss {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  45% {
+    transform: translate(-50%, -50%) scale(0.86);
+  }
+}

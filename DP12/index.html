@@ -117,13 +117,19 @@
     <div class="game-intro">
       <h3>Toelatingsroute</h3>
       <p>
-        Richt je camera op je omgeving. Scan verborgen Nevermore runes en ontdek welk artefact wordt ontgrendeld.
+        Richt je camera op je omgeving en draai langzaam rond. Runes zweven op vaste richtingen om je heen; breng er een in het vizier om hem te verzamelen.
       </p>
-      <button class="btn full-btn" onclick="startCamera()">Geef camera toestemming</button>
+      <button class="btn full-btn" onclick="startCamera()">Start AR Hunt</button>
     </div>
 
     <div class="camera-area">
       <video id="camera" autoplay playsinline></video>
+
+      <div class="ar-hud">
+        <div class="compass" id="compass">0 graden</div>
+        <div class="reticle" id="reticle"></div>
+        <div class="rune-layer" id="runeLayer"></div>
+      </div>
 
       <div class="scan-frame">
         <div class="corner tl"></div>
@@ -139,13 +145,13 @@
         </div>
       </div>
 
-      <p class="scan-text" id="scanText">Zoek langzaam tot een rune oplicht...</p>
+      <p class="scan-text" id="scanText">Start de camera en draai rond om de eerste rune te vinden.</p>
     </div>
 
     <div class="steps">
       <div><span>1</span> Geef camera toestemming</div>
-      <div><span>2</span> Zoek langzaam naar verborgen runes</div>
-      <div><span>3</span> Verzamel alle runes en onthul het artefact</div>
+      <div><span>2</span> Draai je telefoon tot een rune in het vizier staat</div>
+      <div><span>3</span> Pak alle runes en onthul het artefact</div>
     </div>
 
     <div class="progress-box">
@@ -155,7 +161,7 @@
       </div>
     </div>
 
-    <button class="btn full-btn" onclick="scanRune()">Scan Rune</button>
+    <button class="btn full-btn" id="collectButton" onclick="scanRune()">Pak rune in vizier</button>
 
     <div class="artefact hidden" id="artefact">
       <div class="book">📖</div>

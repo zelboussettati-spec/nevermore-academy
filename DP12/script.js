@@ -1,21 +1,43 @@
 let runesFound = 0;
-let autoScanTimer = null;
+let animationId = null;
+let huntStarted = false;
+let orientationActive = false;
+let dragStart = null;
+let visibleTarget = null;
+let messageHoldUntil = 0;
+
+const view = {
+  yaw: 0,
+  pitch: 0
+};
 
 const runes = [
   {
-    symbol: "☾",
+    symbol: "\u263e",
     name: "NOCTIS",
-    text: "Waar de nacht geheimen bewaart."
+    text: "Waar de nacht geheimen bewaart.",
+    yaw: -80,
+    pitch: -4,
+    depth: 0.85,
+    found: false
   },
   {
-    symbol: "👁",
+    symbol: "\u25c9",
     name: "VISIO",
-    text: "Waar verborgen waarheden zichtbaar worden."
+    text: "Waar verborgen waarheden zichtbaar worden.",
+    yaw: 35,
+    pitch: 8,
+    depth: 0.72,
+    found: false
   },
   {
-    symbol: "✦",
+    symbol: "\u2726",
     name: "UMBRA",
-    text: "Waar schaduwen oude kennis beschermen."
+    text: "Waar schaduwen oude kennis beschermen.",
+    yaw: 120,
+    pitch: -10,
+    depth: 0.95,
+    found: false
   }
 ];
 
@@ -27,6 +49,10 @@ function showPage(pageId) {
   document.getElementById(pageId).classList.add("active");
   document.getElementById("mobileMenu").classList.remove("active");
   window.scrollTo(0, 0);
+
+  if (pageId === "game" && huntStarted) {
+    renderRunes();
+  }
 }
 
 function toggleMenu() {
@@ -38,7 +64,7 @@ function showInfo(location) {
 
   if (location === "The Quad") {
     infoBox.innerHTML = `
-      <div class="info-icon">👁</div>
+      <div class="info-icon">O</div>
       <h3>The Quad</h3>
       <p>Central gathering space surrounded by gothic architecture.</p>
       <button class="btn" onclick="showPage('profile')">Explore Location</button>
@@ -47,7 +73,7 @@ function showInfo(location) {
 
   if (location === "Library") {
     infoBox.innerHTML = `
-      <div class="info-icon">📖</div>
+      <div class="info-icon">B</div>
       <h3>Library</h3>
       <p>Ancient books reveal forbidden Nevermore knowledge.</p>
       <button class="btn" onclick="showPage('profile')">View Student Profile</button>
@@ -56,7 +82,7 @@ function showInfo(location) {
 
   if (location === "Dorms") {
     infoBox.innerHTML = `
-      <div class="info-icon">☾</div>
+      <div class="info-icon">N</div>
       <h3>Dorms</h3>
       <p>Students whisper about strange sounds moving through the halls.</p>
       <button class="btn" onclick="showPage('profile')">View Student Profile</button>
@@ -65,7 +91,7 @@ function showInfo(location) {
 
   if (location === "Secret Hall") {
     infoBox.innerHTML = `
-      <div class="info-icon">✦</div>
+      <div class="info-icon">*</div>
       <h3>Secret Hall</h3>
       <p>A hidden passage unlocks the AR Rune Hunt.</p>
       <button class="btn" onclick="showPage('game')">Start AR Game</button>
@@ -77,6 +103,7 @@ async function startCamera() {
   const video = document.getElementById("camera");
 
   resetGame();
+  huntStarted = true;
 
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
@@ -85,71 +112,277 @@ async function startCamera() {
     });
 
     video.srcObject = stream;
-    document.getElementById("scanText").textContent =
-      "Camera actief. Beweeg langzaam alsof je een verborgen symbool zoekt...";
-
-    startAutoScan();
-
+    await enableOrientation();
+    buildRuneLayer();
+    startRenderLoop();
+    setScanText(
+      orientationActive
+        ? "Draai langzaam rond. Een rune licht op als hij in het vizier staat."
+        : "Sleep over het camerabeeld om rond te kijken. Pak een rune als hij in het vizier staat."
+    , 1400);
   } catch (error) {
-    alert("Camera kon niet geopend worden. Geef toestemming of open de website via localhost/https.");
+    alert("Camera kon niet geopend worden. Geef toestemming of open de website via HTTPS.");
   }
 }
 
-function startAutoScan() {
-  if (autoScanTimer) {
-    clearInterval(autoScanTimer);
+async function enableOrientation() {
+  orientationActive = false;
+
+  if (!("DeviceOrientationEvent" in window)) {
+    addDragControls();
+    return;
   }
 
-  autoScanTimer = setInterval(() => {
-    if (runesFound >= 3) {
-      clearInterval(autoScanTimer);
-      autoScanTimer = null;
+  try {
+    if (typeof DeviceOrientationEvent.requestPermission === "function") {
+      const permission = await DeviceOrientationEvent.requestPermission();
+
+      if (permission !== "granted") {
+        addDragControls();
+        return;
+      }
+    }
+
+    window.addEventListener("deviceorientation", handleOrientation, true);
+    orientationActive = true;
+  } catch (error) {
+    addDragControls();
+  }
+}
+
+function handleOrientation(event) {
+  if (typeof event.alpha === "number") {
+    view.yaw = normalizeAngle(360 - event.alpha);
+  }
+
+  if (typeof event.beta === "number") {
+    view.pitch = clamp(event.beta - 55, -35, 35);
+  }
+}
+
+function addDragControls() {
+  const area = document.querySelector(".camera-area");
+
+  area.addEventListener("pointerdown", event => {
+    dragStart = {
+      x: event.clientX,
+      y: event.clientY,
+      yaw: view.yaw,
+      pitch: view.pitch
+    };
+    area.setPointerCapture(event.pointerId);
+  });
+
+  area.addEventListener("pointermove", event => {
+    if (!dragStart) {
       return;
     }
 
-    revealNextRune();
-  }, 3500);
+    const dx = event.clientX - dragStart.x;
+    const dy = event.clientY - dragStart.y;
+
+    view.yaw = normalizeAngle(dragStart.yaw - dx * 0.28);
+    view.pitch = clamp(dragStart.pitch + dy * 0.18, -35, 35);
+  });
+
+  area.addEventListener("pointerup", () => {
+    dragStart = null;
+  });
+
+  area.addEventListener("pointercancel", () => {
+    dragStart = null;
+  });
 }
 
-function revealNextRune() {
-  const rune = runes[runesFound];
+function buildRuneLayer() {
+  const layer = document.getElementById("runeLayer");
+  layer.innerHTML = "";
+
+  runes.forEach((rune, index) => {
+    const button = document.createElement("button");
+    button.className = "world-rune hidden";
+    button.type = "button";
+    button.dataset.index = index;
+    button.innerHTML = `
+      <span class="world-rune-symbol">${rune.symbol}</span>
+      <span class="world-rune-name">${rune.name}</span>
+    `;
+    button.addEventListener("click", () => collectRune(index));
+    layer.appendChild(button);
+  });
+}
+
+function startRenderLoop() {
+  if (animationId) {
+    cancelAnimationFrame(animationId);
+  }
+
+  const tick = () => {
+    renderRunes();
+    animationId = requestAnimationFrame(tick);
+  };
+
+  tick();
+}
+
+function renderRunes() {
+  const compass = document.getElementById("compass");
+  const reticle = document.getElementById("reticle");
+  const nodes = document.querySelectorAll(".world-rune");
+  const horizontalFov = 72;
+  const verticalFov = 48;
+  let bestTarget = null;
+  let bestScore = Infinity;
+
+  compass.textContent = Math.round(view.yaw) + " graden";
+
+  nodes.forEach((node, index) => {
+    const rune = runes[index];
+
+    if (rune.found) {
+      node.classList.add("hidden");
+      node.classList.remove("locked");
+      return;
+    }
+
+    const yawDiff = shortestAngle(rune.yaw - view.yaw);
+    const pitchDiff = rune.pitch - view.pitch;
+    const inView = Math.abs(yawDiff) <= horizontalFov / 2 && Math.abs(pitchDiff) <= verticalFov / 2;
+
+    if (!inView) {
+      node.classList.add("hidden");
+      node.classList.remove("locked");
+      return;
+    }
+
+    const x = 50 + (yawDiff / (horizontalFov / 2)) * 46;
+    const y = 50 - (pitchDiff / (verticalFov / 2)) * 39;
+    const score = Math.hypot(yawDiff, pitchDiff);
+    const scale = 0.68 + (1 - rune.depth) * 0.7 + Math.max(0, 1 - score / 42) * 0.45;
+    const opacity = clamp(1 - score / 52, 0.35, 1);
+
+    node.classList.remove("hidden");
+    node.style.left = x + "%";
+    node.style.top = y + "%";
+    node.style.opacity = opacity;
+    node.style.transform = `translate(-50%, -50%) scale(${scale}) rotateY(${yawDiff * -0.7}deg)`;
+
+    if (score < bestScore) {
+      bestScore = score;
+      bestTarget = { index, score };
+    }
+  });
+
+  visibleTarget = bestTarget && bestTarget.score <= 10 ? bestTarget.index : null;
+
+  nodes.forEach((node, index) => {
+    node.classList.toggle("locked", index === visibleTarget);
+  });
+
+  reticle.classList.toggle("locked", visibleTarget !== null);
+
+  if (visibleTarget !== null) {
+    setScanText("Rune in vizier. Tik op Pak rune in vizier.");
+  } else if (huntStarted && runesFound < runes.length) {
+    setScanText(orientationActive ? "Draai langzaam verder. Luister naar de richting." : "Sleep links of rechts om verder rond te kijken.");
+  }
+}
+
+function scanRune() {
+  if (!huntStarted) {
+    setScanText("Start eerst de AR Hunt met camera toestemming.", 1200);
+    return;
+  }
+
+  if (visibleTarget === null) {
+    pulseReticle();
+    setScanText("Nog niet dichtbij genoeg. Zet een rune precies in het vizier.", 1200);
+    return;
+  }
+
+  collectRune(visibleTarget);
+}
+
+function collectRune(index) {
+  const rune = runes[index];
+
+  if (!rune || rune.found) {
+    return;
+  }
+
+  const aimDistance = Math.hypot(shortestAngle(rune.yaw - view.yaw), rune.pitch - view.pitch);
+
+  if (aimDistance > 14) {
+    pulseReticle();
+    setScanText("Deze rune is zichtbaar, maar nog niet goed genoeg gericht.", 1200);
+    return;
+  }
+
+  rune.found = true;
+  runesFound++;
 
   document.getElementById("currentRune").textContent = rune.symbol;
   document.getElementById("runeName").textContent = rune.name;
   document.getElementById("runeText").textContent = rune.text;
   document.getElementById("foundCard").classList.remove("hidden");
-
-  runesFound++;
-
   document.getElementById("runeCount").textContent = runesFound;
-  document.getElementById("progressFill").style.width = (runesFound / 3) * 100 + "%";
+  document.getElementById("progressFill").style.width = (runesFound / runes.length) * 100 + "%";
 
-  document.getElementById("scanText").textContent =
-    "Verborgen symbool gevonden: " + rune.name;
+  setTimeout(() => {
+    document.getElementById("foundCard").classList.add("hidden");
+  }, 1800);
 
-  if (runesFound === 3) {
+  if (runesFound === runes.length) {
     document.getElementById("artefact").classList.remove("hidden");
-    document.getElementById("scanText").textContent =
-      "Alle runes gevonden. Artefact ontgrendeld.";
+    setScanText("Alle runes gevonden. Artefact ontgrendeld.", 3000);
+  } else {
+    setScanText("Rune verzameld. Draai verder om de volgende te vinden.", 1800);
   }
-}
-
-function scanRune() {
-  revealNextRune();
 }
 
 function resetGame() {
   runesFound = 0;
+  visibleTarget = null;
 
-  if (autoScanTimer) {
-    clearInterval(autoScanTimer);
-    autoScanTimer = null;
-  }
+  runes.forEach(rune => {
+    rune.found = false;
+  });
 
   document.getElementById("runeCount").textContent = "0";
   document.getElementById("progressFill").style.width = "0%";
   document.getElementById("artefact").classList.add("hidden");
   document.getElementById("foundCard").classList.add("hidden");
-  document.getElementById("scanText").textContent =
-    "Zoek langzaam tot een rune oplicht...";
+  setScanText("Start de camera en draai rond om de eerste rune te vinden.");
+  buildRuneLayer();
+}
+
+function pulseReticle() {
+  const reticle = document.getElementById("reticle");
+  reticle.classList.remove("miss");
+  void reticle.offsetWidth;
+  reticle.classList.add("miss");
+}
+
+function setScanText(text, holdMs = 0) {
+  if (Date.now() < messageHoldUntil && holdMs === 0) {
+    return;
+  }
+
+  if (holdMs > 0) {
+    messageHoldUntil = Date.now() + holdMs;
+  }
+
+  document.getElementById("scanText").textContent = text;
+}
+
+function normalizeAngle(angle) {
+  return ((angle % 360) + 360) % 360;
+}
+
+function shortestAngle(angle) {
+  return ((angle + 540) % 360) - 180;
+}
+
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max);
 }
