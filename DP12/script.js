@@ -4,7 +4,6 @@ let huntStarted = false;
 let orientationActive = false;
 let dragStart = null;
 let visibleTarget = null;
-let messageHoldUntil = 0;
 
 const view = {
   yaw: 0,
@@ -114,12 +113,13 @@ async function startCamera() {
     video.srcObject = stream;
     await enableOrientation();
     buildRuneLayer();
+    window.Nevermore3D?.init();
     startRenderLoop();
     setScanText(
       orientationActive
         ? "Draai langzaam rond. Een rune licht op als hij in het vizier staat."
         : "Sleep over het camerabeeld om rond te kijken. Pak een rune als hij in het vizier staat."
-    , 1400);
+    );
   } catch (error) {
     alert("Camera kon niet geopend worden. Geef toestemming of open de website via HTTPS.");
   }
@@ -286,17 +286,24 @@ function renderRunes() {
   } else if (huntStarted && runesFound < runes.length) {
     setScanText(orientationActive ? "Draai langzaam verder. Luister naar de richting." : "Sleep links of rechts om verder rond te kijken.");
   }
+
+  window.Nevermore3D?.update({
+    view,
+    runes,
+    visibleTarget,
+    huntStarted
+  });
 }
 
 function scanRune() {
   if (!huntStarted) {
-    setScanText("Start eerst de AR Hunt met camera toestemming.", 1200);
+    setScanText("Start eerst de AR Hunt met camera toestemming.");
     return;
   }
 
   if (visibleTarget === null) {
     pulseReticle();
-    setScanText("Nog niet dichtbij genoeg. Zet een rune precies in het vizier.", 1200);
+    setScanText("Nog niet dichtbij genoeg. Zet een rune precies in het vizier.");
     return;
   }
 
@@ -314,12 +321,13 @@ function collectRune(index) {
 
   if (aimDistance > 14) {
     pulseReticle();
-    setScanText("Deze rune is zichtbaar, maar nog niet goed genoeg gericht.", 1200);
+    setScanText("Deze rune is zichtbaar, maar nog niet goed genoeg gericht.");
     return;
   }
 
   rune.found = true;
   runesFound++;
+  window.Nevermore3D?.flashRune(index);
 
   document.getElementById("currentRune").textContent = rune.symbol;
   document.getElementById("runeName").textContent = rune.name;
@@ -334,9 +342,9 @@ function collectRune(index) {
 
   if (runesFound === runes.length) {
     document.getElementById("artefact").classList.remove("hidden");
-    setScanText("Alle runes gevonden. Artefact ontgrendeld.", 3000);
+    setScanText("Alle runes gevonden. Artefact ontgrendeld.");
   } else {
-    setScanText("Rune verzameld. Draai verder om de volgende te vinden.", 1800);
+    setScanText("Rune verzameld. Draai verder om de volgende te vinden.");
   }
 }
 
@@ -354,6 +362,12 @@ function resetGame() {
   document.getElementById("foundCard").classList.add("hidden");
   setScanText("Start de camera en draai rond om de eerste rune te vinden.");
   buildRuneLayer();
+  window.Nevermore3D?.update({
+    view,
+    runes,
+    visibleTarget,
+    huntStarted
+  });
 }
 
 function pulseReticle() {
@@ -363,15 +377,7 @@ function pulseReticle() {
   reticle.classList.add("miss");
 }
 
-function setScanText(text, holdMs = 0) {
-  if (Date.now() < messageHoldUntil && holdMs === 0) {
-    return;
-  }
-
-  if (holdMs > 0) {
-    messageHoldUntil = Date.now() + holdMs;
-  }
-
+function setScanText(text) {
   document.getElementById("scanText").textContent = text;
 }
 
@@ -385,4 +391,21 @@ function shortestAngle(angle) {
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
+}
+
+if (new URLSearchParams(window.location.search).has("preview3d")) {
+  window.addEventListener("load", () => {
+    setTimeout(() => {
+      showPage("game");
+      resetGame();
+      huntStarted = true;
+      orientationActive = false;
+      view.yaw = 35;
+      view.pitch = 8;
+      buildRuneLayer();
+      window.Nevermore3D?.init();
+      startRenderLoop();
+      setScanText("3D preview actief.");
+    }, 250);
+  });
 }

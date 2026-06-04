@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Nevermore Academy</title>
   <link rel="stylesheet" href="style.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+      }
+    }
+  </script>
 </head>
 <body>
 
@@ -124,6 +132,7 @@
 
     <div class="camera-area">
       <video id="camera" autoplay playsinline></video>
+      <canvas id="threeScene" class="three-scene"></canvas>
 
       <div class="ar-hud">
         <div class="compass" id="compass">0 graden</div>
@@ -180,6 +189,7 @@
   <p>Nevermore Academy © 2026</p>
 </footer>
 
+<script type="module" src="ar3d.js"></script>
 <script src="script.js"></script>
 </body>
 </html>
